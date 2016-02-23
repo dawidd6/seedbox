@@ -1,5 +1,5 @@
 #rTorrent + ruTorrent + Apache + XMLRPC-C installation script for Ubuntu >= 15.04
-
+[![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox)
 ###What this script is doing
 1. Downloads source of xmlrpc-c super stable, builds it and installs
 2. Downloads source of libtorrent + rtorrent, builds it and installs

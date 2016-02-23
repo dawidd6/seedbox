@@ -1,0 +1,2 @@
+language: bash
+script: sh -n rtorrent-rutorrent-xmlrpcc-apache.sh
