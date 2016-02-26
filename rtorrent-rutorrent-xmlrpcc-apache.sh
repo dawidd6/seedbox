@@ -1,6 +1,43 @@
 #!/bin/bash
 
-function USER
+
+#Variables
+#########################################################
+NAME=
+BOOL=true
+CHOICE=
+
+RTORRENT_DOWNLOAD_DIR=
+RTORRENT_SESSION_DIR=
+
+XMLRPCC_TARBALL=xmlrpc-c-1.33.18.tgz
+XMLRPCC_DIR=xmlrpc-c-1.33.18
+
+LIBTORRENT_TARBALL=libtorrent-0.13.6.tar.gz
+LIBTORRENT_DIR=libtorrent-0.13.6
+
+RTORRENT_TARBALL=rtorrent-0.9.6.tar.gz
+RTORRENT_DIR=rtorrent-0.9.6
+
+RUTORRENT_TARBALL=rutorrent-3.6.tar.gz
+
+RUTORRENT_USER=
+RUTORRENT_PASS=
+#########################################################
+
+function GREETINGS
+{
+	 echo -e "\n\e[1;36mVersions of components to be installed:\e[0m"
+	 echo "-----------------------------------------------------"
+	 echo -e "\e[1;32mxmlrpc-c\e[0m-\e[1;31m1.33.18\e[0m"
+	 echo -e "\e[1;32mlibtorrent\e[0m-\e[1;31m0.13.6\e[0m"
+	 echo -e "\e[1;32mrtorrent\e[0m-\e[1;31m0.9.6\e[0m"
+	 echo -e "\e[1;32mrutorrent\e[0m-\e[1;31m3.6\e[0m"
+	 echo "-----------------------------------------------------"
+	 echo -e "\nScript has been assembled by \e[1mdawidd6\e[0m\n"
+}
+
+function GET_USERNAME
 {
 	echo "Please type your system's username (not root): "
 	read NAME
@@ -13,7 +50,7 @@ function USER
 	
 	elif [ $(who |grep -owc $NAME) != 0 ]
 	then
-	echo "Continue..."
+	echo "Continuing..."
 	
 	else
 	echo "This user does not exist"
@@ -24,7 +61,7 @@ function USER
 	sleep 5
 }
 
-function ROOT
+function CHECK_ROOT
 {
 	if [ $(id -u) != 0 ]
 	then
@@ -34,46 +71,46 @@ function ROOT
 }
 
 
-function APT
+function APT_DEPENDENCIES
 {
 	apt-get update
 
 	apt-get -y install openssl git apache2 apache2-utils build-essential libsigc++-2.0-dev \
 	libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev libapache2-mod-scgi \
 	php5 php5-cgi php5-curl php5-cli libapache2-mod-php5 screen unzip libssl-dev wget curl
-	
-	clear
 }
 
-function XMLRPC
+function DOWNLOAD_STUFF
 {
-	XMLTAR=xmlrpc-c-1.33.18.tgz
-	XMLDIR=xmlrpc-c-1.33.18
-	
 	cd /tmp
-	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLTAR/download -o $XMLTAR
-	tar -xf $XMLTAR
-	rm $XMLTAR
-	cd $XMLDIR
+	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLRPCC_TARBALL/download -o $XMLRPCC_TARBALL
+	wget -c http://rtorrent.net/downloads/$LIBTORRENT_TARBALL
+	wget -c http://rtorrent.net/downloads/$RTORRENT_TARBALL
+	wget -c https://raw.githubusercontent.com/dawidd6/rtorrent-rutorrent-sh/master/.rtorrent.rc -P ~
+	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL -P /var/www/html
+}
+
+function XMLRPCC
+{
+	cd /tmp
+	tar -xf $XMLRPCC_TARBALL
+	rm $XMLRPCC_TARBALL
+	cd $XMLRPCC_DIR
 	
 	./configure --disable-cplusplus
 	make
 	make install
 	
 	cd ..
-	rm -R $XMLDIR
+	rm -R $XMLRPCC_DIR
 }
 
 function LIBTORRENT
 {
-	LIBTAR=libtorrent-0.13.6.tar.gz
-	LIBDIR=libtorrent-0.13.6
-	
 	cd /tmp
-	wget -c http://rtorrent.net/downloads/$LIBTAR
-	tar -xf $LIBTAR
-	rm $LIBTAR
-	cd $LIBDIR
+	tar -xf $LIBTORRENT_TARBALL
+	rm $LIBTORRENT_TARBALL
+	cd $LIBTORRENT_DIR
 	
 	./autogen.sh
 	./configure
@@ -81,19 +118,15 @@ function LIBTORRENT
 	make install
 	
 	cd ..
-	rm -R $LIBDIR
+	rm -R $LIBTORRENT_DIR
 }
 
 function RTORRENT
 {
-	RTTAR=rtorrent-0.9.6.tar.gz
-	RTDIR=rtorrent-0.9.6
-	
 	cd /tmp
-	wget -c http://rtorrent.net/downloads/$RTTAR
-	tar -xf $RTTAR
-	rm $RTTAR
-	cd $RTDIR
+	tar -xf $RTORRENT_TARBALL
+	rm $RTORRENT_TARBALL
+	cd $RTORRENT_DIR
 	
 	./autogen.sh
 	./configure --with-xmlrpc-c
@@ -101,43 +134,42 @@ function RTORRENT
 	make install
 	
 	cd ..
-	rm -R $RTDIR
-	
-	wget https://raw.githubusercontent.com/dawidd6/rtorrent-rutorrent-sh/master/.rtorrent.rc
-	mv .rtorrent.rc ~/
+	rm -R $RTORRENT_DIR
 
 	ldconfig
 	
-	
+	echo -e "\nDefault directory for downloads is: ~/rtorrent/downloads"
+	echo -e "Default directory for session files is: ~/rtorrent/.rtorrent-session\n"
 	echo "Do you want to set custom directories for rtorrent? ('yes' or 'no'): "
 	read CHOICE
 	BOOL=true
+	
 	while [ $BOOL = true ]
 	do
 	
 	if [ $CHOICE = yes ]
 	then
 	echo "Type a directory to where will rtorrent download files: "
-	read DLDIR
-	sed -i -e "s@~/rtorrent/downloads@$DLDIR@g" ~/.rtorrent.rc
+	read RTORRENT_DOWNLOAD_DIR
+	sed -i -e "s@~/rtorrent/downloads@$RTORRENT_DOWNLOAD_DIR@g" ~/.rtorrent.rc
 	echo "Type a directory to where will rtorrent save session files: "
-	read SSDIR
-	sed -i -e "s@~/rtorrent/.rtorrent-session@$SSDIR@g" ~/.rtorrent.rc
-	mkdir -p $DLDIR
-	mkdir -p $SSDIR
-	chown -R $NAME:$NAME $DLDIR
-	chown -R $NAME:$NAME $SSDIR
-	chown $NAME:$NAME ~/.rtorrent.rc
+	read RTORRENT_SESSION_DIR
+	sed -i -e "s@~/rtorrent/.rtorrent-session@$RTORRENT_SESSION_DIR@g" ~/.rtorrent.rc
+	mkdir -p $RTORRENT_DOWNLOAD_DIR
+	mkdir -p $RTORRENT_SESSION_DIR
+	chown -R $NAME:$NAME $RTORRENT_DOWNLOAD_DIR
+	chown -R $NAME:$NAME $RTORRENT_SESSION_DIR
 	BOOL=false
 	
 	elif [ $CHOICE = no ]
 	then
 	mkdir -p ~/rtorrent/.rtorrent-session
 	mkdir -p ~/rtorrent/downloads
-	chown -R $NAME:$NAME ~/rtorrent
-	chown $NAME:$NAME ~/.rtorrent.rc
+	chown -R $NAME:$NAME ~/rtorrent/.rtorrent-session
+	chown -R $NAME:$NAME ~/rtorrent/downloads
 	echo "Default..."
 	BOOL=false
+	sleep 5
 	
 	else
 	echo "Type 'yes' or 'no': "
@@ -145,9 +177,11 @@ function RTORRENT
 	
 	fi
 	done
+	
+	chown $NAME:$NAME ~/.rtorrent.rc
 }
 
-function SYSTEMD
+function SYSTEMD_SERVICE
 {
 	cat > "/etc/systemd/system/rtorrent.service" <<-EOF
 	[Unit]
@@ -171,17 +205,15 @@ function SYSTEMD
 function RUTORRENT
 {
 	echo "Type username for ruTorrent interface: "
-	read RUUSER
+	read RUTORRENT_USER
 	echo "Type password for ruTorrent interface: "
-	read RUPASS
-	RUTAR=rutorrent-3.6.tar.gz
+	read RUTORRENT_PASS
 	
 	cd /var/www/html
-	wget -c http://dl.bintray.com/novik65/generic/$RUTAR
-	tar -xf $RUTAR
-	rm $RUTAR
+	tar -xf $RUTORRENT_TARBALL
+	rm $RUTORRENT_TARBALL
 	
-	htpasswd -cb /var/www/html/rutorrent/.htpasswd $RUUSER $RUPASS
+	htpasswd -cb /var/www/html/rutorrent/.htpasswd $RUTORRENT_USER $RUTORRENT_PASS
 	
 	chown -R www-data:www-data rutorrent
 	chmod -R 755 rutorrent
@@ -234,24 +266,26 @@ function APACHE
 
 function COMPLETE
 {
-	echo "***INSTALLATION COMPLETE***"
+	echo -e "\n***INSTALLATION COMPLETED***"
 	echo "You should be able to log in to rutorrent interface at: "
 	echo "http://localhost:80/rutorrent"
 	echo "with this authentication: "
-	echo "--------------------------------------"
-	echo $RUUSER
-	echo $RUPASS
-	echo "--------------------------------------"
+	echo "-----------------------------------------------------"
+	echo $RUTORRENT_USER
+	echo $RUTORRENT_PASS
+	echo "-----------------------------------------------------"
+	echo "XMLRPC-C is working on /RPC2 address"
 }
 
-
-ROOT
-USER
-APT
-XMLRPC
+GREETINGS
+CHECK_ROOT
+GET_USERNAME
+APT_DEPENDENCIES
+DOWNLOAD_STUFF
+XMLRPCC
 LIBTORRENT
 RTORRENT
-SYSTEMD
+SYSTEMD_SERVICE
 RUTORRENT
 APACHE
 COMPLETE
