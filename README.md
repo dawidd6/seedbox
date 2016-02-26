@@ -1,11 +1,13 @@
-#rTorrent + ruTorrent + Apache + XMLRPC-C installation script for Ubuntu >= 15.04
+#rTorrent + libTorrent + ruTorrent + Apache + XMLRPC-C installation script for Debian and derivatives with systemd
 [![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox)
 ###What this script is doing
-1. Downloads source of xmlrpc-c super stable, builds it and installs
-2. Downloads source of libtorrent + rtorrent, builds it and installs
-3. Downloads needed dependencies via apt-get
-4. Makes rtorrent systemd's service, starts it and enables
-5. Downloads rutorrent and configures apache to work with it
+- **rTorrent**: downloads source, builds, installs, makes systemd's service, there's a prompt for changing default directories
+- **libTorrent**: downloads source, builds, installs
+- **ruTorrent**: downloads source and configures RPC, there's a prompt for interface authentication
+- **Apache**: installs from repo via apt and configures for ruTorrent
+- **XMLRPC-C**: downloads source, builds, installs
+
+**script is cleaning after yourself**
 
 ###Usage
 ```sh
@@ -14,7 +16,7 @@ cd seedbox
 sudo ./rtorrent-rutorrent-xmlrpcc-apache.sh
 ```
 
-###Packages which script installs
+###Dependencies
 ```sh
 openssl
 git
@@ -39,3 +41,5 @@ libssl-dev
 wget 
 curl
 ```
+***Script was tested on Debian 8 Jessie and Ubuntu 15.10***
+
