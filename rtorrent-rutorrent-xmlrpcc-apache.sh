@@ -142,7 +142,6 @@ function RTORRENT
 	echo -e "Default directory for session files is: ~/rtorrent/.rtorrent-session\n"
 	echo "Do you want to set custom directories for rtorrent? ('yes' or 'no'): "
 	read CHOICE
-	BOOL=true
 	
 	while [ $BOOL = true ]
 	do
