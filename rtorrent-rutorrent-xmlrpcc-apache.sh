@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #Variables
 #########################################################
 NAME=
@@ -29,10 +28,10 @@ function GREETINGS
 {
 	 echo -e "\n\e[1;36mVersions of components to be installed:\e[0m"
 	 echo "-----------------------------------------------------"
-	 echo -e "\e[1;32mxmlrpc-c\e[0m-\e[1;31m1.33.18\e[0m"
-	 echo -e "\e[1;32mlibtorrent\e[0m-\e[1;31m0.13.6\e[0m"
-	 echo -e "\e[1;32mrtorrent\e[0m-\e[1;31m0.9.6\e[0m"
-	 echo -e "\e[1;32mrutorrent\e[0m-\e[1;31m3.6\e[0m"
+	 echo -e "\e[1;32mxmlrpc-c\e[0m - \e[1;31m1.33.18\e[0m"
+	 echo -e "\e[1;32mlibtorrent\e[0m - \e[1;31m0.13.6\e[0m"
+	 echo -e "\e[1;32mrtorrent\e[0m - \e[1;31m0.9.6\e[0m"
+	 echo -e "\e[1;32mrutorrent\e[0m - \e[1;31m3.6\e[0m"
 	 echo "-----------------------------------------------------"
 	 echo -e "\nScript has been assembled by \e[1mdawidd6\e[0m\n"
 }
@@ -58,7 +57,7 @@ function GET_USERNAME
 	exit 1
 	
 	fi
-	sleep 5
+	sleep 3
 }
 
 function CHECK_ROOT
@@ -86,7 +85,7 @@ function DOWNLOAD_STUFF
 	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLRPCC_TARBALL/download -o $XMLRPCC_TARBALL
 	wget -c http://rtorrent.net/downloads/$LIBTORRENT_TARBALL
 	wget -c http://rtorrent.net/downloads/$RTORRENT_TARBALL
-	wget -c https://raw.githubusercontent.com/dawidd6/rtorrent-rutorrent-sh/master/.rtorrent.rc -P ~
+	wget -c https://raw.githubusercontent.com/dawidd6/rtorrent-rutorrent-sh/master/.rtorrent.rc -P /home/$NAME
 	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL -P /var/www/html
 }
 
@@ -150,10 +149,10 @@ function RTORRENT
 	then
 	echo "Type a directory to where will rtorrent download files: "
 	read RTORRENT_DOWNLOAD_DIR
-	sed -i -e "s@~/rtorrent/downloads@$RTORRENT_DOWNLOAD_DIR@g" ~/.rtorrent.rc
+	sed -i -e "s@~/rtorrent/downloads@$RTORRENT_DOWNLOAD_DIR@g" /home/$NAME/.rtorrent.rc
 	echo "Type a directory to where will rtorrent save session files: "
 	read RTORRENT_SESSION_DIR
-	sed -i -e "s@~/rtorrent/.rtorrent-session@$RTORRENT_SESSION_DIR@g" ~/.rtorrent.rc
+	sed -i -e "s@~/rtorrent/.rtorrent-session@$RTORRENT_SESSION_DIR@g" /home/$NAME/.rtorrent.rc
 	mkdir -p $RTORRENT_DOWNLOAD_DIR
 	mkdir -p $RTORRENT_SESSION_DIR
 	chown -R $NAME:$NAME $RTORRENT_DOWNLOAD_DIR
@@ -162,13 +161,13 @@ function RTORRENT
 	
 	elif [ $CHOICE = no ]
 	then
-	mkdir -p ~/rtorrent/.rtorrent-session
-	mkdir -p ~/rtorrent/downloads
-	chown -R $NAME:$NAME ~/rtorrent/.rtorrent-session
-	chown -R $NAME:$NAME ~/rtorrent/downloads
+	mkdir -p /home/$NAME/rtorrent/.rtorrent-session
+	mkdir -p /home/$NAME/rtorrent/downloads
+	chown -R $NAME:$NAME /home/$NAME/rtorrent/.rtorrent-session
+	chown -R $NAME:$NAME /home/$NAME/rtorrent/downloads
 	echo "Default..."
 	BOOL=false
-	sleep 5
+	sleep 3
 	
 	else
 	echo "Type 'yes' or 'no': "
@@ -177,7 +176,7 @@ function RTORRENT
 	fi
 	done
 	
-	chown $NAME:$NAME ~/.rtorrent.rc
+	chown $NAME:$NAME /home/$NAME/.rtorrent.rc
 }
 
 function SYSTEMD_SERVICE
