@@ -65,9 +65,9 @@ function APK_DEPENDENCIES
 {
 	apk update
 
-	apk add rtorrent libtorrent xmlrpc-c openssl git apache2 apache2-utils gcc g++ libsigc++-dev make \
+	apk add rtorrent libtorrent xmlrpc-c openssl git apache2 apache2-utils gcc g++ \
 	automake libtool cppunit-dev ncurses-dev ncurses ncurses-libs libssl1.0 \
-	php php-cgi php-curl php-cli php-apache2 screen wget
+	php php-cgi php-curl php-cli php-apache2 screen wget make libsigc++-dev
 }
 
 function DOWNLOAD_STUFF
@@ -174,7 +174,14 @@ function RUTORRENT
 
 function APACHE_CONFIGURE
 {
-	cp 
+	if [ $(uname -m) == x86_64 ]
+	then
+	cp /home/$NAME/seedbox/files/x86_64/mod_scgi.so /var/www/modules
+	elif [ $(uname -m) == x86 ]
+	then
+	cp /home/$NAME/seedbox/files/x86/mod_scgi.so /var/www/modules
+	fi
+	
 	cat >> "/etc/apache2/httpd.conf" <<-EOF
     	LoadModule scgi_module modules/mod_scgi.so
     	
@@ -187,6 +194,9 @@ function APACHE_CONFIGURE
         AuthUserFile /var/www/localhost/htdocs/rutorrent/.htpasswd
     	</Directory>
 	EOF
+	
+	/etc/init.d/apache2 start
+	rc-update add apache2 default
 }
 
 function COMPLETE
