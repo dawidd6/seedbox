@@ -1,20 +1,14 @@
 #rTorrent + libTorrent + ruTorrent + Apache + XMLRPC-C installation script for Debian >= 8 / Ubuntu >= 15.04 and Alpine Linux
 [![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox)
-###What this script is doing (Debian / Ubuntu)
-- **rTorrent**: downloads source, builds, installs, makes systemd's service, there's a prompt for changing default directories
-- **libTorrent**: downloads source, builds, installs
-- **ruTorrent**: downloads source and configures RPC, there's a prompt for interface authentication
-- **Apache**: installs from repo via apt and configures for ruTorrent
-- **XMLRPC-C**: downloads source, builds, installs
-
-**script is cleaning after yourself**
 
 ###Usage
 ```sh
 git clone https://github.com/dawidd6/seedbox.git ~/seedbox
 cd ~/seedbox
-sudo ./``place_here_name_of_script``.sh
+sudo ./"place_here_name_of_script".sh
 ```
+
+**script is cleaning after yourself**
 
 ###Packages installed via apt (Debian / Ubuntu)
 ```sh
@@ -70,5 +64,6 @@ wget
 make
 libsigc++-dev
 ```
+
 ***Script was tested on Debian 8 Jessie / Ubuntu 15.10 and Alpine Linux***
 
