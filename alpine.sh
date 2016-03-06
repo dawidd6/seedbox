@@ -174,12 +174,15 @@ function RUTORRENT
 
 function APACHE_CONFIGURE
 {
-	if [ $(uname -m) == x86_64 ]
+	if uname -m|grep -wq x86_64
 	then
 	cp /home/$NAME/seedbox/files/x86_64/mod_scgi.so /var/www/modules
-	elif [ $(uname -m) == x86 ]
+	elif uname -m|grep -wq x86
 	then
 	cp /home/$NAME/seedbox/files/x86/mod_scgi.so /var/www/modules
+	elif uname -m|grep -q arm
+	then
+	cp /home/$NAME/seedbox/files/armhf/mod_scgi.so /var/www/modules
 	fi
 	
 	cat >> "/etc/apache2/httpd.conf" <<-EOF
