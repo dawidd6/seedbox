@@ -9,15 +9,6 @@ CHOICE=
 RTORRENT_DOWNLOAD_DIR=
 RTORRENT_SESSION_DIR=
 
-XMLRPCC_TARBALL=xmlrpc-c-1.33.18.tgz
-XMLRPCC_DIR=xmlrpc-c-1.33.18
-
-LIBTORRENT_TARBALL=libtorrent-0.13.6.tar.gz
-LIBTORRENT_DIR=libtorrent-0.13.6
-
-RTORRENT_TARBALL=rtorrent-0.9.6.tar.gz
-RTORRENT_DIR=rtorrent-0.9.6
-
 RUTORRENT_TARBALL=rutorrent-3.6.tar.gz
 
 RUTORRENT_USER=
@@ -47,7 +38,7 @@ function GET_USERNAME
 	echo "Please run script again and type a valid username"
 	exit 1
 	
-	elif [ $(who |grep -owc $NAME) != 0 ]
+	elif [ $(cat /etc/passwd |grep -owc $NAME) != 0 ]
 	then
 	echo "Continuing..."
 	
@@ -70,73 +61,23 @@ function CHECK_ROOT
 }
 
 
-function APT_DEPENDENCIES
+function APK_DEPENDENCIES
 {
-	apt-get update
+	apk update
 
-	apt-get -y install openssl git apache2 apache2-utils build-essential libsigc++-2.0-dev \
-	libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev libapache2-mod-scgi \
-	php5 php5-cgi php5-curl php5-cli libapache2-mod-php5 screen unzip libssl-dev wget curl
+	apk add rtorrent libtorrent xmlrpc-c openssl git apache2 apache2-utils gcc g++ libsigc++-dev make \
+	automake libtool cppunit-dev ncurses-dev ncurses ncurses-libs libssl1.0 \
+	php php-cgi php-curl php-cli php-apache2 screen wget
 }
 
 function DOWNLOAD_STUFF
 {
-	cd /tmp
-	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLRPCC_TARBALL/download -o $XMLRPCC_TARBALL
-	wget -c http://rtorrent.net/downloads/$LIBTORRENT_TARBALL
-	wget -c http://rtorrent.net/downloads/$RTORRENT_TARBALL
-	wget -c https://raw.githubusercontent.com/dawidd6/rtorrent-rutorrent-sh/master/.rtorrent.rc -P /home/$NAME
-	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL -P /var/www/html
+	wget -c http://raw.githubusercontent.com/dawidd6/seedbox/master/files/.rtorrent.rc -P /home/$NAME
+	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL -P /var/www/localhost/htdocs
 }
 
-function XMLRPCC
-{
-	cd /tmp
-	tar -xf $XMLRPCC_TARBALL
-	rm $XMLRPCC_TARBALL
-	cd $XMLRPCC_DIR
-	
-	./configure --disable-cplusplus
-	make
-	make install
-	
-	cd ..
-	rm -R $XMLRPCC_DIR
-}
-
-function LIBTORRENT
-{
-	cd /tmp
-	tar -xf $LIBTORRENT_TARBALL
-	rm $LIBTORRENT_TARBALL
-	cd $LIBTORRENT_DIR
-	
-	./autogen.sh
-	./configure
-	make
-	make install
-	
-	cd ..
-	rm -R $LIBTORRENT_DIR
-}
-
-function RTORRENT
-{
-	cd /tmp
-	tar -xf $RTORRENT_TARBALL
-	rm $RTORRENT_TARBALL
-	cd $RTORRENT_DIR
-	
-	./autogen.sh
-	./configure --with-xmlrpc-c
-	make
-	make install
-	
-	cd ..
-	rm -R $RTORRENT_DIR
-
-	ldconfig
-	
+function RTORRENT_CONFIGURE
+{	
 	echo -e "\nDefault directory for downloads is: ~/rtorrent/downloads"
 	echo -e "Default directory for session files is: ~/rtorrent/.rtorrent-session\n"
 	echo "Do you want to set custom directories for rtorrent? ('yes' or 'no'): "
@@ -179,25 +120,42 @@ function RTORRENT
 	chown $NAME:$NAME /home/$NAME/.rtorrent.rc
 }
 
-function SYSTEMD_SERVICE
+function OPENRC_SERVICE
 {
-	cat > "/etc/systemd/system/rtorrent.service" <<-EOF
-	[Unit]
-	Description=rtorrent
+	cat > "/etc/init.d/rtorrentd" <<-EOF
+	#!/sbin/runscript
 
-	[Service]
-	Type=oneshot
-	RemainAfterExit=yes
-	User=$NAME
-	ExecStart=/usr/bin/screen -S rtorrent -fa -d -m rtorrent
-	ExecStop=/usr/bin/screen -X -S rtorrent quit
+	depend()
+	{
+		use net
+	}
 
-	[Install]
-	WantedBy=default.target
+	start()
+	{
+		ebegin "Starting rtorrent..."
+		start-stop-daemon \
+		--start \
+		--make-pidfile \
+		--pidfile /var/run/rtorrentd.pid \
+		--background \
+		--user $NAME \
+		--name rtorrentd \
+		--exec /usr/bin/screen -- -D -m -S rtorrentd /usr/bin/rtorrent
+		eend $?
+	}
+
+	stop()
+	{
+		ebegin "Stopping rtorrent..."
+		start-stop-daemon --stop --signal 15 \
+		--pidfile /var/run/rtorrentd.pid
+		eend $?
+	}
 	EOF
 	
-	systemctl enable rtorrent.service
-	systemctl start rtorrent.service
+	chmod +x /etc/init.d/rtorrentd
+	/etc/init.d/rtorrentd start
+	rc-update add rtorrentd default
 }
 
 function RUTORRENT
@@ -207,59 +165,28 @@ function RUTORRENT
 	echo "Type password for ruTorrent interface: "
 	read RUTORRENT_PASS
 	
-	cd /var/www/html
-	tar -xf $RUTORRENT_TARBALL
+	cd /var/www/localhost/htdocs
+	tar -zxvf $RUTORRENT_TARBALL
 	rm $RUTORRENT_TARBALL
 	
-	htpasswd -cb /var/www/html/rutorrent/.htpasswd $RUTORRENT_USER $RUTORRENT_PASS
-	
-	chown -R www-data:www-data rutorrent
-	chmod -R 755 rutorrent
-	
+	htpasswd -cb /var/www/localhost/htdocs/rutorrent/.htpasswd $RUTORRENT_USER $RUTORRENT_PASS
 }
 
-function APACHE
+function APACHE_CONFIGURE
 {
-	if ! test -h /etc/apache2/mods-enabled/scgi.load
-	then
-	ln -s /etc/apache2/mods-available/scgi.load /etc/apache2/mods-enabled/scgi.load
-	fi
-
-	if ! grep --quiet "^Listen 80$" /etc/apache2/ports.conf
-	then
-	echo "Listen 80" >> /etc/apache2/ports.conf
-	fi
-
-	if ! grep --quiet "^ServerName$" /etc/apache2/apache2.conf
-	then
-	echo "ServerName localhost" >> /etc/apache2/apache2.conf
-	fi
-
-	if ! test -f /etc/apache2/sites-available/001-default-rutorrent.conf
-	then
-	cat > "/etc/apache2/sites-available/001-default-rutorrent.conf" <<-EOF
-	<VirtualHost *:80>
-    	#ServerName www.example.com
-    	ServerAdmin webmaster@localhost
-    	DocumentRoot /var/www/html
-
-    	CustomLog /var/log/apache2/rutorrent.log vhost_combined
-    	ErrorLog /var/log/apache2/rutorrent_error.log
+	cp 
+	cat >> "/etc/apache2/httpd.conf" <<-EOF
+    	LoadModule scgi_module modules/mod_scgi.so
+    	
     	SCGIMount /RPC2 127.0.0.1:5000
 
-    	<Directory "/var/www/html/rutorrent">
+    	<Directory "/var/www/localhost/htdocs/rutorrent">
         AuthName "ruTorrent interface"
         AuthType Basic
         Require valid-user
-        AuthUserFile /var/www/html/rutorrent/.htpasswd
+        AuthUserFile /var/www/localhost/htdocs/rutorrent/.htpasswd
     	</Directory>
-	</VirtualHost>
 	EOF
-	
-	a2ensite 001-default-rutorrent.conf
-	a2dissite 000-default.conf
-	systemctl restart apache2.service
-	fi
 }
 
 function COMPLETE
@@ -278,12 +205,10 @@ function COMPLETE
 GREETINGS
 CHECK_ROOT
 GET_USERNAME
-APT_DEPENDENCIES
+APK_DEPENDENCIES
 DOWNLOAD_STUFF
-XMLRPCC
-LIBTORRENT
-RTORRENT
-SYSTEMD_SERVICE
+RTORRENT_CONFIGURE
+OPENRC_SERVICE
 RUTORRENT
-APACHE
+APACHE_CONFIGURE
 COMPLETE
