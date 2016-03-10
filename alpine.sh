@@ -65,9 +65,9 @@ function APK_DEPENDENCIES
 {
 	apk update
 
-	apk add rtorrent libtorrent xmlrpc-c openssl git apache2 apache2-utils gcc g++ \
-	automake libtool cppunit-dev ncurses-dev ncurses ncurses-libs libssl1.0 \
-	php php-cgi php-curl php-cli php-apache2 screen wget make libsigc++-dev
+	apk add rtorrent libtorrent xmlrpc-c openssl apache2 apache2-utils \
+	libtool cppunit-dev ncurses-dev ncurses ncurses-libs libssl1.0 \
+	php php-cgi php-curl php-cli php-apache2 screen wget libsigc++-dev
 }
 
 function DOWNLOAD_STUFF
