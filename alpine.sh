@@ -127,12 +127,12 @@ function OPENRC_SERVICE
 
 	depend()
 	{
-		use net
+		use net ypbind nis
 	}
 
 	start()
 	{
-		ebegin "Starting rtorrent..."
+		ebegin "Starting rtorrent"
 		start-stop-daemon \
 		--start \
 		--make-pidfile \
@@ -146,7 +146,7 @@ function OPENRC_SERVICE
 
 	stop()
 	{
-		ebegin "Stopping rtorrent..."
+		ebegin "Stopping rtorrent"
 		start-stop-daemon --stop --signal 15 \
 		--pidfile /var/run/rtorrentd.pid
 		eend $?
