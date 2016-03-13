@@ -164,7 +164,7 @@ function ALP::DEPENDENCIES
 	apk add apache2 apache2-utils php-apache2
 	elif [ $WEBSERVER = 2 ]
 	then
-	apk add lighttpd
+	apk add lighttpd lighttpd-mod_auth
 	fi
 	
 	apk add rtorrent libtorrent xmlrpc-c openssl \
@@ -429,21 +429,9 @@ function ALP::WEBSERVER_CONFIGURE
 	then
 		printf "$RUTORRENT_USER:$(openssl passwd -crypt $RUTORRENT_PASS)\n" >> /var/www/localhost/htdocs/rutorrent/.htpasswd
 	
-		echo 'server.modules += ( "mod_auth" )' >> /etc/lighttpd/lighttpd.conf
-		echo 'server.modules += ( "mod_scgi" )' >> /etc/lighttpd/lighttpd.conf
-		echo 'server.modules += ( "mod_fcgi" )' >> /etc/lighttpd/lighttpd.conf
-	
-		if ! grep --quiet "cgi.fix_pathinfo=1" /etc/php/php.ini
-		then
-		echo "cgi.fix_pathinfo=1" >> /etc/php/php.ini
-		fi
-	
-		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
-		fastcgi.server = ( ".php" => ((
-		"bin-path" => "/usr/bin/php-cgi",
-		"socket" => "/tmp/php.socket"
-		)))
-		EOF
+		sed -i -e 's@#    "mod_auth",@     "mod_auth",@g' /etc/lighttpd/lighttpd.conf
+		sed -i -e 's@#    "mod_ssi",@     "mod_scgi",@g' /etc/lighttpd/lighttpd.conf
+		sed -i -e "s@;cgi.fix_pathinfo=1@cgi.fix_pathinfo=1@g" /etc/php/php.ini
 	
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		auth.backend = "htpasswd"
