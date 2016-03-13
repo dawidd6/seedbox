@@ -433,11 +433,10 @@ function ALP::WEBSERVER_CONFIGURE
 		sed -i -e 's@#    "mod_ssi",@     "mod_scgi",@g' /etc/lighttpd/lighttpd.conf
 		sed -i -e 's@#   include "mod_fastcgi.conf"@include "mod_fastcgi.conf"@g' /etc/lighttpd/lighttpd.conf
 		sed -i -e "s@;cgi.fix_pathinfo=1@cgi.fix_pathinfo=1@g" /etc/php/php.ini
-	#   include "mod_fastcgi.conf"
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		auth.backend = "htpasswd"
 		auth.backend.htpasswd.userfile = "/var/www/localhost/htdocs/rutorrent/.htpasswd"
-		auth.require = ( "/var/www/localhost/htdocs/rutorrent/" =>
+		auth.require = ( "/rutorrent" =>
 	    	(
 	    	"method"  => "basic",
 	    	"realm"   => "ruTorrent interface",
@@ -528,7 +527,7 @@ function DEB::WEBSERVER_CONFIGURE
 	
 		if ! grep --quiet "mod_fcgi" /etc/lighttpd/lighttpd.conf
 		then
-		echo 'server.modules += ( "mod_fcgi" )' >> /etc/lighttpd/lighttpd.conf
+		echo 'server.modules += ( "mod_fastcgi" )' >> /etc/lighttpd/lighttpd.conf
 		fi
 	
 		if ! grep --quiet "cgi.fix_pathinfo=1" /etc/php5/cgi/php.ini
@@ -551,7 +550,7 @@ function DEB::WEBSERVER_CONFIGURE
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		auth.backend = "htpasswd"
 		auth.backend.htpasswd.userfile = "/var/www/html/rutorrent/.htpasswd"
-		auth.require = ( "/var/www/html/rutorrent/" =>
+		auth.require = ( "/rutorrent" =>
 	    	(
 	    	"method"  => "basic",
 	    	"realm"   => "ruTorrent interface",
@@ -588,7 +587,7 @@ function DEB::WEBSERVER_CONFIGURE
 function ALL::COMPLETE
 {
 	echo -e "\n***INSTALLATION COMPLETED***"
-	echo "You should be able to log in to rutorrent interface at: "
+	echo "You should be able after reboot to log in to rutorrent interface at: "
 	echo "http://localhost:80/rutorrent"
 	echo "with this authentication: "
 	echo "-----------------------------------------------------"
