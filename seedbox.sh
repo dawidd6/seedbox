@@ -431,8 +431,9 @@ function ALP::WEBSERVER_CONFIGURE
 	
 		sed -i -e 's@#    "mod_auth",@     "mod_auth",@g' /etc/lighttpd/lighttpd.conf
 		sed -i -e 's@#    "mod_ssi",@     "mod_scgi",@g' /etc/lighttpd/lighttpd.conf
+		sed -i -e 's@#   include "mod_fastcgi.conf"@include "mod_fastcgi.conf"@g' /etc/lighttpd/lighttpd.conf
 		sed -i -e "s@;cgi.fix_pathinfo=1@cgi.fix_pathinfo=1@g" /etc/php/php.ini
-	
+	#   include "mod_fastcgi.conf"
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		auth.backend = "htpasswd"
 		auth.backend.htpasswd.userfile = "/var/www/localhost/htdocs/rutorrent/.htpasswd"
