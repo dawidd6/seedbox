@@ -313,8 +313,8 @@ function DEB::SYSTEMD_SERVICE
 	WantedBy=default.target
 	EOF
 	
-	systemctl enable rtorrent.service
 	systemctl start rtorrent.service
+	systemctl enable rtorrent.service
 }
 
 function ALP::OPENRC_SERVICE
