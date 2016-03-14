@@ -1,4 +1,4 @@
-#rTorrent + libTorrent + ruTorrent + Webserver + XMLRPC-C installation script for Debian >= 8 / Ubuntu >= 15.04 and Alpine Linux
+#rTorrent + libTorrent + ruTorrent + Webserver + XMLRPC-C installation script
 [![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox)
 
 ###Usage
