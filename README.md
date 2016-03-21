@@ -5,10 +5,13 @@
 ```sh
 git clone https://github.com/dawidd6/seedbox.git ~/seedbox
 cd ~/seedbox
-sudo ./seedbox.sh
+sudo ./"scriptname".sh
 ```
+###Supported distributions
+- Debian-based distro with systemd onboard
+- Alpine Linux
 
-**script is cleaning after yourself**
-
-***Script was tested on Debian 8 Jessie / Ubuntu 15.10 and Alpine Linux***
-
+###Features
+- Currently there is choose between Apache and Lighttpd
+- Script is cleaning after yourself
+- Script asks for custom directories for rtorrent (or leaves default)
