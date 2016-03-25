@@ -8,13 +8,13 @@ function DEPENDENCIES
 {	
 	if [ $WEBSERVER = 1 ]
 	then
-	pacman -Sy apache php-apache
+	pacman -Sy --noconfirm apache php-apache
 	elif [ $WEBSERVER = 2 ]
 	then
-	pacman -Sy lighttpd
+	pacman -Sy --noconfirm lighttpd
 	fi
 	
-	pacman -S rtorrent libtorrent xmlrpc-c openssl libtool cppunit ncurses php php-cgi screen wget libsigc++
+	pacman -S --noconfirm rtorrent libtorrent xmlrpc-c openssl libtool cppunit ncurses php php-cgi screen wget libsigc++
 }
 #########################################################
 
