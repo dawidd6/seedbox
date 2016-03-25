@@ -5,20 +5,16 @@ source include.sh
 #Dependencies
 #########################################################
 function DEPENDENCIES
-{
-	apk update
-	
+{	
 	if [ $WEBSERVER = 1 ]
 	then
-	apk add apache2 apache2-utils php-apache2
+	pacman -Sy apache php-apache
 	elif [ $WEBSERVER = 2 ]
 	then
-	apk add lighttpd lighttpd-mod_auth
+	pacman -Sy lighttpd
 	fi
 	
-	apk add rtorrent libtorrent xmlrpc-c openssl \
-	libtool cppunit-dev ncurses-dev ncurses ncurses-libs libssl1.0 \
-	php php-cgi php-curl php-cli screen wget libsigc++-dev
+	pacman -S rtorrent libtorrent xmlrpc-c openssl libtool cppunit ncurses php php-cgi screen wget libsigc++
 }
 #########################################################
 
@@ -34,42 +30,25 @@ function DOWNLOAD_STUFF
 
 #Service
 #########################################################
-function OPENRC_SERVICE
+function SYSTEMD_SERVICE
 {
-	cat > "/etc/init.d/rtorrentd" <<-EOF
-	#!/sbin/runscript
+	cat > "/etc/systemd/system/rtorrent.service" <<-EOF
+	[Unit]
+	Description=rtorrent
 
-	depend()
-	{
-		use net ypbind nis
-	}
+	[Service]
+	Type=oneshot
+	RemainAfterExit=yes
+	User=$NAME
+	ExecStart=/usr/bin/screen -S rtorrent -fa -d -m rtorrent
+	ExecStop=/usr/bin/screen -X -S rtorrent quit
 
-	start()
-	{
-		ebegin "Starting rtorrent"
-		start-stop-daemon \
-		--start \
-		--make-pidfile \
-		--pidfile /var/run/rtorrentd.pid \
-		--background \
-		--user $NAME \
-		--name rtorrentd \
-		--exec /usr/bin/screen -- -D -m -S rtorrentd /usr/bin/rtorrent
-		eend $?
-	}
-
-	stop()
-	{
-		ebegin "Stopping rtorrent"
-		start-stop-daemon --stop --signal 15 \
-		--pidfile /var/run/rtorrentd.pid
-		eend $?
-	}
+	[Install]
+	WantedBy=default.target
 	EOF
 	
-	chmod +x /etc/init.d/rtorrentd
-	/etc/init.d/rtorrentd start
-	rc-update add rtorrentd default
+	systemctl start rtorrent.service
+	systemctl enable rtorrent.service
 }
 #########################################################
 
@@ -82,10 +61,12 @@ function RUTORRENT
 	echo "Type password for ruTorrent interface: "
 	read RUTORRENT_PASS
 	
-	mv /tmp/$RUTORRENT_TARBALL /var/www/localhost/htdocs
-	cd /var/www/localhost/htdocs
-	tar -zxf $RUTORRENT_TARBALL
+	mv /tmp/$RUTORRENT_TARBALL /srv/http
+	cd /srv/http
+	tar -xf $RUTORRENT_TARBALL
 	rm $RUTORRENT_TARBALL
+	
+	echo "$NAME:x:1000:" >> /etc/group
 }
 #########################################################
 
@@ -95,45 +76,70 @@ function WEBSERVER_CONFIGURE
 {
 	if [ $WEBSERVER = 1 ]
 	then
-		htpasswd -cb /var/www/localhost/htdocs/rutorrent/.htpasswd $RUTORRENT_USER $RUTORRENT_PASS
+		htpasswd -cb /srv/http/rutorrent/.htpasswd $RUTORRENT_USER $RUTORRENT_PASS
 		if uname -m|grep -wq x86_64
 		then
-		cp /home/$NAME/seedbox/files/x86_64/mod_scgi.so /var/www/modules
+		cp /home/$NAME/seedbox/files/x86_64/mod_scgi.so /etc/httpd/modules
 		elif uname -m|grep -wq x86
 		then
-		cp /home/$NAME/seedbox/files/x86/mod_scgi.so /var/www/modules
+		cp /home/$NAME/seedbox/files/x86/mod_scgi.so /etc/httpd/modules
 		elif uname -m|grep -q arm
 		then
-		cp /home/$NAME/seedbox/files/armhf/mod_scgi.so /var/www/modules
+		cp /home/$NAME/seedbox/files/armhf/mod_scgi.so /etc/httpd/modules
 		fi
 	
-		cat >> "/etc/apache2/httpd.conf" <<-EOF
+		cat >> "/etc/httpd/conf/httpd.conf" <<-EOF
 	    	LoadModule scgi_module modules/mod_scgi.so
 	    	
 	    	SCGIMount /RPC2 127.0.0.1:5000
 
-	    	<Directory "/var/www/localhost/htdocs/rutorrent">
+	    	<Directory "/etc/httpd/modules/rutorrent">
 		AuthName "ruTorrent interface"
 		AuthType Basic
 		Require valid-user
-		AuthUserFile /var/www/localhost/htdocs/rutorrent/.htpasswd
+		AuthUserFile /etc/httpd/modules/rutorrent/.htpasswd
 	    	</Directory>
 		EOF
 	
-		/etc/init.d/apache2 start
-		rc-update add apache2 default
-		
+		systemctl start httpd.service
+		systemctl enable httpd.service
+	
 	elif [ $WEBSERVER = 2 ]
 	then
-		printf "$RUTORRENT_USER:$(openssl passwd -crypt $RUTORRENT_PASS)\n" >> /var/www/localhost/htdocs/rutorrent/.htpasswd
+		printf "$RUTORRENT_USER:$(openssl passwd -crypt $RUTORRENT_PASS)\n" >> /srv/http/rutorrent/.htpasswd
 	
-		sed -i -e 's@#    "mod_auth",@     "mod_auth",@g' /etc/lighttpd/lighttpd.conf
-		sed -i -e 's@#    "mod_ssi",@     "mod_scgi",@g' /etc/lighttpd/lighttpd.conf
-		sed -i -e 's@#   include "mod_fastcgi.conf"@include "mod_fastcgi.conf"@g' /etc/lighttpd/lighttpd.conf
+		if ! grep --quiet "mod_auth" /etc/lighttpd/lighttpd.conf
+		then
+		echo 'server.modules += ( "mod_auth" )' >> /etc/lighttpd/lighttpd.conf
+		fi
+	
+		if ! grep --quiet "mod_scgi" /etc/lighttpd/lighttpd.conf
+		then
+		echo 'server.modules += ( "mod_scgi" )' >> /etc/lighttpd/lighttpd.conf
+		fi
+	
+		if ! grep --quiet "mod_fcgi" /etc/lighttpd/lighttpd.conf
+		then
+		echo 'server.modules += ( "mod_fastcgi" )' >> /etc/lighttpd/lighttpd.conf
+		fi
+	
 		sed -i -e "s@;cgi.fix_pathinfo=1@cgi.fix_pathinfo=1@g" /etc/php/php.ini
+	
+		if ! grep --quiet "fastcgi.server" /etc/lighttpd/lighttpd.conf
+		then
+		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
+		fastcgi.server = ( ".php" => ((
+		"bin-path" => "/usr/bin/php-cgi",
+		"socket" => "/run/lighttpd/php.socket"
+		)))
+		EOF
+		fi
+	
+		if ! grep --quiet "auth.backend.htpasswd.userfile" /etc/lighttpd/lighttpd.conf
+		then
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		auth.backend = "htpasswd"
-		auth.backend.htpasswd.userfile = "/var/www/localhost/htdocs/rutorrent/.htpasswd"
+		auth.backend.htpasswd.userfile = "/srv/http/rutorrent/.htpasswd"
 		auth.require = ( "/rutorrent" =>
 	    	(
 	    	"method"  => "basic",
@@ -142,7 +148,10 @@ function WEBSERVER_CONFIGURE
 	    	),
 		)
 		EOF
+		fi
 	
+		if ! grep --quiet "scgi.server" /etc/lighttpd/lighttpd.conf
+		then
 		cat >> "/etc/lighttpd/lighttpd.conf" <<-EOF
 		scgi.server = (
 		"/RPC2" =>
@@ -155,9 +164,10 @@ function WEBSERVER_CONFIGURE
 		)
 		)
 		EOF
+		fi
 	
-		/etc/init.d/lighttpd restart
-		rc-update add lighttpd default
+		systemctl start lighttpd.service
+		systemctl enable lighttpd.service
 	fi
 }
 
@@ -169,7 +179,7 @@ GET_USERNAME
 GET_WEBSERVER
 DEPENDENCIES
 DOWNLOAD_STUFF
-OPENRC_SERVICE
+SYSTEMD_SERVICE
 RUTORRENT
 WEBSERVER_CONFIGURE
 RTORRENT_CONFIGURE
