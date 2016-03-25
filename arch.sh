@@ -96,9 +96,9 @@ function WEBSERVER_CONFIGURE
 
 		echo "AddType application/x-httpd-php-source .phps" >> /etc/httpd/conf/httpd.conf
 
-		sed -i -e "@LoadModule mpm_event_module modules/mod_mpm_event.so@#LoadModule mpm_event_module modules/mod_mpm_event.so@g" /etc/httpd/conf/httpd.conf
+		sed -i -e "s@LoadModule mpm_event_module modules/mod_mpm_event.so@#LoadModule mpm_event_module modules/mod_mpm_event.so@g" /etc/httpd/conf/httpd.conf
 	
-		sed -i -e "@#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so@LoadModule mpm_prefork_module modules/mod_mpm_prefork.so@g" /etc/httpd/conf/httpd.conf
+		sed -i -e "s@#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so@LoadModule mpm_prefork_module modules/mod_mpm_prefork.so@g" /etc/httpd/conf/httpd.conf
 
 		cat >> "/etc/httpd/conf/httpd.conf" <<-EOF
 	    	LoadModule scgi_module modules/mod_scgi.so
