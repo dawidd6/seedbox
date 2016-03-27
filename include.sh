@@ -1,11 +1,11 @@
 #Variables
 #########################################################
-NAME=$(printf '%s\n' "${SUDO_USER:-$USER}")
+NAME="$(printf '%s\n' "${SUDO_USER:-$USER}")"
 BOOL=true
 CHOICE=
 
-RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
-RTORRENT_SESSION_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^session/ {print $3;}')"
+RTORRENT_DOWNLOAD_DIR=
+RTORRENT_SESSION_DIR=
 
 XMLRPCC_TARBALL=xmlrpc-c-1.33.18.tgz
 XMLRPCC_DIR=xmlrpc-c-1.33.18
@@ -23,7 +23,7 @@ RUTORRENT_PASS=
 
 WEBSERVER=0
 
-SETUP=$1
+SETUP="$1"
 #########################################################
 
 #Greetings

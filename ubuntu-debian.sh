@@ -252,30 +252,6 @@ WEBSERVER_CONFIGURE()
 }
 #########################################################
 
-#Main
-#########################################################
-CHECK_ROOT
-if [ $SETUP == install ]
-then
-	GREETINGS
-	GET_USERNAME
-	GET_WEBSERVER
-	DEPENDENCIES
-	DOWNLOAD_STUFF
-	XMLRPCC_COMPILE
-	LIBTORRENT_COMPILE
-	RTORRENT_COMPILE
-	SYSTEMD_SERVICE
-	RUTORRENT
-	WEBSERVER_CONFIGURE
-	RTORRENT_CONFIGURE
-	COMPLETE
-elif [ $SETUP == uninstall ]
-then
-	UNINSTALL
-fi
-#########################################################
-
 #Uninstall
 #########################################################
 UNINSTALL()
@@ -291,7 +267,10 @@ UNINSTALL()
 	then
 	apt-get purge lighttpd
 	fi
-	
+
+	RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
+	RTORRENT_SESSION_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^session/ {print $3;}')"
+
 	rm -R "$RTORRENT_DOWNLOAD_DIR"
 	rm -R "$RTORRENT_SESSION_DIR"
 	rm -R /home/$NAME/.rtorrent.rc
@@ -327,4 +306,28 @@ UNINSTALL()
 
 	ldconfig
 }
+#########################################################
+
+#Main
+#########################################################
+CHECK_ROOT
+if [ $SETUP == install ]
+then
+	GREETINGS
+	GET_USERNAME
+	GET_WEBSERVER
+	DEPENDENCIES
+	DOWNLOAD_STUFF
+	XMLRPCC_COMPILE
+	LIBTORRENT_COMPILE
+	RTORRENT_COMPILE
+	SYSTEMD_SERVICE
+	RUTORRENT
+	WEBSERVER_CONFIGURE
+	RTORRENT_CONFIGURE
+	COMPLETE
+elif [ $SETUP == uninstall ]
+then
+	UNINSTALL
+fi
 #########################################################

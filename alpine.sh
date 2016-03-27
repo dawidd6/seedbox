@@ -161,6 +161,32 @@ function WEBSERVER_CONFIGURE
 	fi
 }
 
+#Uninstall
+#########################################################
+UNINSTALL()
+{
+	apk del rtorrent libtorrent xmlrpc-c openssl cppunit-dev ncurses-dev ncurses \
+	ncurses-libs libssl1.0 php php-cgi php-curl php-cli screen libsigc++-dev
+
+	if apk info |grep -q apache
+	then
+	apk del apache2 apache2-utils php-apache2
+	elif apk info |grep -q lighttpd
+	then
+	apk del lighttpd lighttpd-mod_auth
+	fi
+	
+	RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
+	RTORRENT_SESSION_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^session/ {print $3;}')"
+
+	rm -R "$RTORRENT_DOWNLOAD_DIR"
+	rm -R "$RTORRENT_SESSION_DIR"
+	rm -R /home/$NAME/.rtorrent.rc
+	rm -R /var/www/localhost/htdocs/rutorrent
+	rm /etc/init.d/rtorrentd
+}
+#########################################################
+
 #Main
 #########################################################
 CHECK_ROOT
@@ -180,27 +206,4 @@ elif [ $SETUP == uninstall ]
 then
 	UNINSTALL
 fi
-#########################################################
-
-#Uninstall
-#########################################################
-UNINSTALL()
-{
-	apk del rtorrent libtorrent xmlrpc-c openssl cppunit-dev ncurses-dev ncurses \
-	ncurses-libs libssl1.0 php php-cgi php-curl php-cli screen libsigc++-dev
-
-	if apk info |grep -q apache
-	then
-	apk del apache2 apache2-utils php-apache2
-	elif apk info |grep -q lighttpd
-	then
-	apk del lighttpd lighttpd-mod_auth
-	fi
-	
-	rm -R "$RTORRENT_DOWNLOAD_DIR"
-	rm -R "$RTORRENT_SESSION_DIR"
-	rm -R /home/$NAME/.rtorrent.rc
-	rm -R /var/www/localhost/htdocs/rutorrent
-	rm /etc/init.d/rtorrentd
-}
 #########################################################

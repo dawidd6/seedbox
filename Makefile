@@ -1,10 +1,21 @@
 OPTION=
 
+help:
+	@echo "OPTIONS:"
+	@echo "make install alpine"
+	@echo "make uninstall alpine"
+	@echo "make install arch"
+	@echo "make uninstall arch"
+	@echo "make install debian"
+	@echo "make uninstall debian"
+	@echo "make install ubuntu"
+	@echo "make uninstall ubuntu"
+
 install:
-	$(OPTION)=install
+	$(eval OPTION="install")
 
 uninstall:
-	$(OPTION)=uninstall
+	$(eval OPTION="uninstall")
 
 alpine:
 	./alpine.sh $(OPTION)
