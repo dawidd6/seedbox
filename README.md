@@ -11,10 +11,10 @@ git clone https://github.com/dawidd6/seedbox.git ~/seedbox
 cd ~/seedbox
 make
 ```
-When you type 'make' you will get possible commands
+When you type `make` you will get possible commands
 
 Or one can open desired script manually:
-``sh
+```sh
 git clone https://github.com/dawidd6/seedbox.git ~/seedbox
 cd ~/seedbox
 sudo ./"script" install
