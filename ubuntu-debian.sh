@@ -4,7 +4,7 @@ source include.sh
 
 #Dependencies
 #########################################################
-function DEPENDENCIES
+DEPENDENCIES()
 {
 	apt-get update
 	
@@ -16,7 +16,7 @@ function DEPENDENCIES
 	apt-get -y install lighttpd
 	fi
 	
-	apt-get -y install openssl git build-essential libsigc++-2.0-dev \
+	apt-get -y install openssl build-essential libsigc++-2.0-dev \
 	libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev \
 	php5 php5-cgi php5-curl php5-cli screen unzip libssl-dev wget curl
 }
@@ -24,7 +24,7 @@ function DEPENDENCIES
 
 #Download
 #########################################################
-function DOWNLOAD_STUFF
+DOWNLOAD_STUFF()
 {
 	cd /tmp
 	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLRPCC_TARBALL/download -o $XMLRPCC_TARBALL
@@ -37,7 +37,7 @@ function DOWNLOAD_STUFF
 
 #Compile
 #########################################################
-function XMLRPCC_COMPILE
+XMLRPCC_COMPILE()
 {
 	cd /tmp
 	tar -xf $XMLRPCC_TARBALL
@@ -52,7 +52,7 @@ function XMLRPCC_COMPILE
 	rm -R $XMLRPCC_DIR
 }
 
-function LIBTORRENT_COMPILE
+LIBTORRENT_COMPILE()
 {
 	cd /tmp
 	tar -xf $LIBTORRENT_TARBALL
@@ -68,7 +68,7 @@ function LIBTORRENT_COMPILE
 	rm -R $LIBTORRENT_DIR
 }
 
-function RTORRENT_COMPILE
+RTORRENT_COMPILE()
 {
 	cd /tmp
 	tar -xf $RTORRENT_TARBALL
@@ -89,7 +89,7 @@ function RTORRENT_COMPILE
 
 #Service
 #########################################################
-function SYSTEMD_SERVICE
+SYSTEMD_SERVICE()
 {
 	cat > "/etc/systemd/system/rtorrent.service" <<-EOF
 	[Unit]
@@ -113,7 +113,7 @@ function SYSTEMD_SERVICE
 
 #Rutorrent
 #########################################################
-function RUTORRENT
+RUTORRENT()
 {
 	echo "Type username for ruTorrent interface: "
 	read RUTORRENT_USER
@@ -133,7 +133,7 @@ function RUTORRENT
 
 #Webservers
 #########################################################
-function WEBSERVER_CONFIGURE
+WEBSERVER_CONFIGURE()
 {
 	if [ $WEBSERVER = 1 ]
 	then
@@ -255,17 +255,76 @@ function WEBSERVER_CONFIGURE
 #Main
 #########################################################
 CHECK_ROOT
-GREETINGS
-GET_USERNAME
-GET_WEBSERVER
-DEPENDENCIES
-DOWNLOAD_STUFF
-XMLRPCC_COMPILE
-LIBTORRENT_COMPILE
-RTORRENT_COMPILE
-SYSTEMD_SERVICE
-RUTORRENT
-WEBSERVER_CONFIGURE
-RTORRENT_CONFIGURE
-COMPLETE
+if [ $SETUP == install ]
+then
+	GREETINGS
+	GET_USERNAME
+	GET_WEBSERVER
+	DEPENDENCIES
+	DOWNLOAD_STUFF
+	XMLRPCC_COMPILE
+	LIBTORRENT_COMPILE
+	RTORRENT_COMPILE
+	SYSTEMD_SERVICE
+	RUTORRENT
+	WEBSERVER_CONFIGURE
+	RTORRENT_CONFIGURE
+	COMPLETE
+elif [ $SETUP == uninstall ]
+then
+	UNINSTALL
+fi
+#########################################################
+
+#Uninstall
+#########################################################
+UNINSTALL()
+{
+	apt-get purge openssl libsigc++-2.0-dev \
+	libcurl4-openssl-dev automake libcppunit-dev libncurses5-dev \
+	php5 php5-cgi php5-curl php5-cli screen libssl-dev
+
+	if dpkg -l|grep -q apache2
+	then
+	apt-get purge apache2 apache2-utils libapache2-mod-scgi libapache2-mod-php5
+	elif dpkg -l|grep -q lighttpd
+	then
+	apt-get purge lighttpd
+	fi
+	
+	rm -R "$RTORRENT_DOWNLOAD_DIR"
+	rm -R "$RTORRENT_SESSION_DIR"
+	rm -R /home/$NAME/.rtorrent.rc
+	rm -R /var/www/html/rutorrent
+	rm /etc/systemd/system/rtorrent.service
+	
+	cd /tmp
+	
+	curl -L https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.33.18/$XMLRPCC_TARBALL/download -o $XMLRPCC_TARBALL
+	wget -c http://rtorrent.net/downloads/$LIBTORRENT_TARBALL
+	wget -c http://rtorrent.net/downloads/$RTORRENT_TARBALL
+
+	tar -xf $RTORRENT_TARBALL
+	rm $RTORRENT_TARBALL
+	cd $RTORRENT_DIR
+	make uninstall
+	cd ..
+	rm -R $RTORRENT_DIR
+
+	tar -xf $XMLRPCC_TARBALL
+	rm $XMLRPCC_TARBALL
+	cd $XMLRPCC_DIR
+	make uninstall
+	cd ..
+	rm -R $XMLRPCC_DIR
+
+	tar -xf $LIBTORRENT_TARBALL
+	rm $LIBTORRENT_TARBALL
+	cd $LIBTORRENT_DIR
+	make uninstall
+	cd ..
+	rm -R $LIBTORRENT_DIR
+
+	ldconfig
+}
 #########################################################

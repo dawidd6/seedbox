@@ -1,11 +1,11 @@
 #Variables
 #########################################################
-NAME=
+NAME=$(printf '%s\n' "${SUDO_USER:-$USER}")
 BOOL=true
 CHOICE=
 
-RTORRENT_DOWNLOAD_DIR=
-RTORRENT_SESSION_DIR=
+RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
+RTORRENT_SESSION_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^session/ {print $3;}')"
 
 XMLRPCC_TARBALL=xmlrpc-c-1.33.18.tgz
 XMLRPCC_DIR=xmlrpc-c-1.33.18
@@ -22,11 +22,13 @@ RUTORRENT_USER=
 RUTORRENT_PASS=
 
 WEBSERVER=0
+
+SETUP=$1
 #########################################################
 
 #Greetings
 #########################################################
-function GREETINGS
+GREETINGS()
 {
 	 echo -e "\n\e[1;36mVersions of components to be installed:\e[0m"
 	 echo "-----------------------------------------------------"
@@ -41,7 +43,7 @@ function GREETINGS
 
 #Various Shit
 #########################################################
-function CHECK_ROOT
+CHECK_ROOT()
 {
 	if [ $(id -u) != 0 ]
 	then
@@ -50,7 +52,7 @@ function CHECK_ROOT
 	fi
 }
 
-function GET_USERNAME
+GET_USERNAME()
 {
 	echo "Please type your system's username (not root): "
 	read NAME
@@ -74,7 +76,7 @@ function GET_USERNAME
 	sleep 3
 }
 
-function GET_WEBSERVER
+GET_WEBSERVER()
 {
 	echo "Please type which webserver would you use ('1' or '2'):"
 	echo "1) Apache"
@@ -93,7 +95,7 @@ function GET_WEBSERVER
 
 #Rtorrent Configuration
 #########################################################
-function RTORRENT_CONFIGURE
+RTORRENT_CONFIGURE()
 {
 	echo -e "\nDefault directory for downloads is: ~/rtorrent/downloads"
 	echo -e "Default directory for session files is: ~/rtorrent/.rtorrent-session\n"
@@ -140,7 +142,7 @@ function RTORRENT_CONFIGURE
 
 #Complete
 #########################################################
-function COMPLETE
+COMPLETE()
 {
 	echo -e "\n***INSTALLATION COMPLETED***"
 	echo "You should be able after reboot to log in to rutorrent interface at: "

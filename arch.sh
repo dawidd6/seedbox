@@ -4,7 +4,7 @@ source include.sh
 
 #Dependencies
 #########################################################
-function DEPENDENCIES
+DEPENDENCIES()
 {	
 	if [ $WEBSERVER = 1 ]
 	then
@@ -20,7 +20,7 @@ function DEPENDENCIES
 
 #Download
 #########################################################
-function DOWNLOAD_STUFF
+DOWNLOAD_STUFF()
 {
 	cd /tmp
 	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL
@@ -30,7 +30,7 @@ function DOWNLOAD_STUFF
 
 #Service
 #########################################################
-function SYSTEMD_SERVICE
+SYSTEMD_SERVICE()
 {
 	cat > "/etc/systemd/system/rtorrent.service" <<-EOF
 	[Unit]
@@ -54,7 +54,7 @@ function SYSTEMD_SERVICE
 
 #Rutorrent
 #########################################################
-function RUTORRENT
+RUTORRENT()
 {
 	echo "Type username for ruTorrent interface: "
 	read RUTORRENT_USER
@@ -72,7 +72,7 @@ function RUTORRENT
 
 #Webservers
 #########################################################
-function WEBSERVER_CONFIGURE
+WEBSERVER_CONFIGURE()
 {
 	if [ $WEBSERVER = 1 ]
 	then
@@ -186,14 +186,42 @@ function WEBSERVER_CONFIGURE
 #Main
 #########################################################
 CHECK_ROOT
-GREETINGS
-GET_USERNAME
-GET_WEBSERVER
-DEPENDENCIES
-DOWNLOAD_STUFF
-SYSTEMD_SERVICE
-RUTORRENT
-WEBSERVER_CONFIGURE
-RTORRENT_CONFIGURE
-COMPLETE
+if [ $SETUP == install ]
+then
+	GREETINGS
+	GET_USERNAME
+	GET_WEBSERVER
+	DEPENDENCIES
+	DOWNLOAD_STUFF
+	SYSTEMD_SERVICE
+	RUTORRENT
+	WEBSERVER_CONFIGURE
+	RTORRENT_CONFIGURE
+	COMPLETE
+elif [ $SETUP == uninstall ]
+then
+	UNINSTALL
+fi
+#########################################################
+
+#Uninstall
+#########################################################
+UNINSTALL()
+{
+	pacman -Rnsc rtorrent libtorrent xmlrpc-c openssl cppunit ncurses php php-cgi screen libsigc++
+
+	if pacman -Qs apache > /dev/null
+	then
+	pacman -Rnsc apache php-apache
+	elif pacman -Qs lighttpd > /dev/null
+	then
+	pacman -Rnsc lighttpd
+	fi
+	
+	rm -R "$RTORRENT_DOWNLOAD_DIR"
+	rm -R "$RTORRENT_SESSION_DIR"
+	rm -R /home/$NAME/.rtorrent.rc
+	rm -R /srv/http/rutorrent
+	rm /etc/systemd/system/rtorrent.service
+}
 #########################################################
