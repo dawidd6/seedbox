@@ -32,7 +32,3 @@ sudo ./"script" uninstall
 - Script is cleaning after yourself
 - Script asks for custom directories for rtorrent (or leaves default)
 - Install or uninstall
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/dawidd6/seedbox/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
