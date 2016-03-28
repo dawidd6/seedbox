@@ -186,7 +186,7 @@ WEBSERVER_CONFIGURE()
 #########################################################
 UNINSTALL()
 {
-	pacman -Rnsc rtorrent libtorrent xmlrpc-c openssl cppunit php php-cgi screen libsigc++
+	pacman -Rnsc rtorrent libtorrent xmlrpc-c cppunit php php-cgi screen libsigc++
 
 	if pacman -Qs apache > /dev/null
 	then
