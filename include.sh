@@ -244,6 +244,7 @@ RTORRENT_CONFIGURE()
 	done
 	
 	chown $NAME:$NAME /home/$NAME/.rtorrent.rc
+}
 #########################################################
 
 #Complete
