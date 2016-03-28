@@ -276,6 +276,8 @@ UNINSTALL()
 	then
 	apt-get purge lighttpd
 	fi
+	
+	apt-get autoremove --purge
 
 	RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
 	RTORRENT_SESSION_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^session/ {print $3;}')"
