@@ -190,10 +190,11 @@ UNINSTALL()
 
 	if pacman -Qs apache > /dev/null
 	then
-	pacman -Rnsc apache php-apache
+		pacman -Rnsc apache apr-util apr
+
 	elif pacman -Qs lighttpd > /dev/null
 	then
-	pacman -Rnsc lighttpd
+		pacman -Rnsc lighttpd
 	fi
 	
 	RTORRENT_DOWNLOAD_DIR="$(cat /home/$NAME/.rtorrent.rc |awk '/^directory/ {print $3;}')"
