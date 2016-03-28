@@ -28,7 +28,6 @@ function DOWNLOAD_STUFF
 {
 	cd /tmp
 	wget -c http://dl.bintray.com/novik65/generic/$RUTORRENT_TARBALL
-	wget -c http://raw.githubusercontent.com/dawidd6/seedbox/master/files/.rtorrent.rc -P /home/$NAME
 }
 #########################################################
 
