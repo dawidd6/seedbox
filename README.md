@@ -1,5 +1,5 @@
 #rTorrent + libTorrent + ruTorrent + Webserver + XMLRPC-C (un)installation script
-[![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox)
+[![Build Status](https://travis-ci.org/dawidd6/seedbox.svg?branch=master)](https://travis-ci.org/dawidd6/seedbox) [![Code Health](https://landscape.io/github/dawidd6/seedbox/master/landscape.svg?style=flat)](https://landscape.io/github/dawidd6/seedbox/master)
 
 ###Usage
 One can use make to easily open right script:
