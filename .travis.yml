@@ -1,2 +1,9 @@
 language: bash
-script: sh -n *.sh
+
+dist: trusty
+sudo: required
+
+services:
+ - docker
+
+script: docker build .
