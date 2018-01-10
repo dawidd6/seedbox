@@ -1,0 +1,13 @@
+[Unit]
+Description=rtorrent
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/usr/bin/screen -S rtorrent -fa -d -m rtorrent
+ExecStop=/usr/bin/screen -X -S rtorrent quit
+
+[Install]
+WantedBy=default.target
